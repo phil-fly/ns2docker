@@ -1,4 +1,4 @@
-module ns2docker
+module "github.com/phil-fly/ns2docker"
 
 go 1.16
 
