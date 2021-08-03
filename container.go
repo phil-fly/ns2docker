@@ -12,14 +12,14 @@ func LoadDockerNsCache() {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	DockerNsCache.Clear()
 
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	var containerInspect types.ContainerJSON
@@ -41,7 +41,7 @@ func QueryNs(containerID string) (namespace string,err error) {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		panic(err)
+		return "",err
 	}
 
 	var containerInspect types.ContainerJSON
