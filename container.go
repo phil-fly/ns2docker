@@ -33,7 +33,7 @@ func LoadDockerNsCache() {
 			continue
 		}
 
-		DockerNsCache.Put(filelink[5:len(filelink)-1],container)
+		DockerNsCache.Put(filelink[5:len(filelink)-1],containerInspect)
 	}
 }
 
@@ -66,13 +66,13 @@ func SearchContainerName(namespace string) string {
 	//直接获取失败时，重新加载ns列表
 	dockerContainer,ok := DockerNsCache.Get(namespace)
 	if ok {
-		return dockerContainer.Names[0][1:]
+		return dockerContainer.Name[1:]
 	}
 
 	LoadDockerNsCache()
 	dockerContainer,ok = DockerNsCache.Get(namespace)
 	if ok {
-		return dockerContainer.Names[0][1:]
+		return dockerContainer.Name[1:]
 	}
 	return ""
 }
@@ -80,19 +80,19 @@ func SearchContainerName(namespace string) string {
 func SearchOverlay2(namespace string,typeName string) string {
 
 	if namespace == "4026531836" {
-		return "localhost"
+		return ""
 	}
 
 	//直接获取失败时，重新加载ns列表
 	dockerContainer,ok := DockerNsCache.Get(namespace)
 	if ok {
-		return dockerContainer.GraphDriver.Data["MergedDir"]
+		return  dockerContainer.GraphDriver.Data[typeName]
 	}
 
 	LoadDockerNsCache()
 	dockerContainer,ok = DockerNsCache.Get(namespace)
 	if ok {
-		return dockerContainer.GraphDriver.Data["MergedDir"]
+		return dockerContainer.GraphDriver.Data[typeName]
 	}
 	return ""
 }
