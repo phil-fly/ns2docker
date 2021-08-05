@@ -57,7 +57,7 @@ func QueryNs(containerID string) (namespace string,err error) {
 	return filelink[5:len(filelink)-1],nil
 }
 
-func Search(namespace string) string {
+func SearchContainerName(namespace string) string {
 
 	if namespace == "4026531836" {
 		return "localhost"
@@ -73,6 +73,26 @@ func Search(namespace string) string {
 	dockerContainer,ok = DockerNsCache.Get(namespace)
 	if ok {
 		return dockerContainer.Names[0][1:]
+	}
+	return ""
+}
+
+func SearchOverlay2(namespace string,typeName string) string {
+
+	if namespace == "4026531836" {
+		return "localhost"
+	}
+
+	//直接获取失败时，重新加载ns列表
+	dockerContainer,ok := DockerNsCache.Get(namespace)
+	if ok {
+		return dockerContainer.GraphDriver.Data["MergedDir"]
+	}
+
+	LoadDockerNsCache()
+	dockerContainer,ok = DockerNsCache.Get(namespace)
+	if ok {
+		return dockerContainer.GraphDriver.Data["MergedDir"]
 	}
 	return ""
 }
