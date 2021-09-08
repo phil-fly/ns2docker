@@ -44,6 +44,6 @@ func (nc *NsCache)Del(key string) {
 
 func (nc *NsCache)Clear() {
 	for k :=range nc.Ns2Container {
-		delete(nc.Ns2Container,k)
+		nc.Del(k)
 	}
 }

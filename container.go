@@ -37,6 +37,33 @@ func LoadDockerNsCache() {
 	}
 }
 
+func AddDockerNsCache() {
+	ctx := context.Background()
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return
+	}
+
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		return
+	}
+
+	var containerInspect types.ContainerJSON
+	for _, container := range containers {
+		if containerInspect,err = cli.ContainerInspect(ctx, container.ID);err != nil {
+			continue
+		}
+
+		filelink, err := os.Readlink(fmt.Sprintf("/proc/%d/ns/pid", containerInspect.State.Pid))
+		if err != nil {
+			continue
+		}
+
+		DockerNsCache.Put(filelink[5:len(filelink)-1],containerInspect)
+	}
+}
+
 func QueryNs(containerID string) (namespace string,err error) {
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -63,13 +90,13 @@ func SearchContainerName(namespace string) string {
 		return "localhost"
 	}
 
-	//直接获取失败时，重新加载ns列表
+	//直接获取失败时，新增加载ns列表
 	dockerContainer,ok := DockerNsCache.Get(namespace)
 	if ok {
 		return dockerContainer.Name[1:]
 	}
 
-	LoadDockerNsCache()
+	AddDockerNsCache()
 	dockerContainer,ok = DockerNsCache.Get(namespace)
 	if ok {
 		return dockerContainer.Name[1:]
@@ -83,13 +110,13 @@ func SearchOverlay2(namespace string,typeName string) string {
 		return ""
 	}
 
-	//直接获取失败时，重新加载ns列表
+	//直接获取失败时，新增加载ns列表
 	dockerContainer,ok := DockerNsCache.Get(namespace)
 	if ok {
 		return  dockerContainer.GraphDriver.Data[typeName]
 	}
 
-	LoadDockerNsCache()
+	AddDockerNsCache()
 	dockerContainer,ok = DockerNsCache.Get(namespace)
 	if ok {
 		return dockerContainer.GraphDriver.Data[typeName]
